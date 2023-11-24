@@ -10,13 +10,12 @@ import AppStoreGrid from "~/components/AppStoreGrid.vue";
 
 export default {
   components: {
-    AppStoreGrid
+    AppStoreGrid,
   },
   computed: {
-    ...mapState(["storedata"])
-  }
+    ...mapState(["storedata"]),
+  },
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

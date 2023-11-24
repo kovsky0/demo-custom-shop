@@ -11,12 +11,16 @@
 <script>
 import AppFooter from "~/components/AppFooter.vue";
 import AppNav from "~/components/AppNav.vue";
+import { widget } from "~/misc/group-buy";
 
 export default {
   components: {
     AppFooter,
-    AppNav
-  }
+    AppNav,
+  },
+  mounted() {
+    widget.init();
+  },
 };
 </script>
 
