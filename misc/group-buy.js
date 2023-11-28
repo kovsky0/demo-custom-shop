@@ -172,7 +172,6 @@ export const widget = (() => {
     }
 
     const refresh = (savingsAmount, discountedTotalPrice) => {
-      console.log("CALL RERENDER");
       const contentToRender = groupPurchaseId
         ? htmlForActive(i18n, classes, savingsAmount, discountedTotalPrice)
         : htmlForNew(i18n, classes, savingsAmount, discountedTotalPrice);

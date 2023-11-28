@@ -72,10 +72,10 @@
 import { Card, handleCardPayment } from "vue-stripe-elements-plus";
 
 import { mapState } from "vuex";
-// import { widget } from "~/misc/group-buy";
+import { widget } from "~/misc/group-buy";
 
 const formatPrice = (price) => {
-  return price.toLocaleString("en-US", {
+  return (price / 100).toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
   });
@@ -91,37 +91,49 @@ export default {
   mounted() {
     // create a PaymentIntent on Stripe with order information
     this.$store.dispatch("createPaymentIntent");
-    // rerenderGroupBuy = widget.renderGroupBuy({
-    //   cssClasses: {
-    //     container: "group-buy-container",
-    //   },
-    //   discountedTotalPrice: formatPrice(
-    //     this.cart.reduce(
-    //       (acc, item) => acc + Math.floor(item.price * item.quantity * 0.8),
-    //       0
-    //     )
-    //   ),
-    //   savingsAmount: formatPrice(
-    //     this.cart.reduce((acc, item) => acc + item.price * item.quantity, 0) -
-    //       this.cart.reduce(
-    //         (acc, item) => acc + Math.floor(item.price * item.quantity * 0.8),
-    //         0
-    //       )
-    //   ),
-    //   onStartGroupBuy: (startGroupBuy) => {
-    //     const products = this.cart.map((item) => ({
-    //       productId: item.id,
-    //       quantity: item.quantity,
-    //       name: item.name,
-    //       imageUrl: window.location.origin + "/products/" + item.img,
-    //       priceInCents: item.price * 100,
-    //       discountedPriceInCents: Math.floor(item.price * 100 * 0.8),
-    //       description: item.description,
-    //     }));
-    //     startGroupBuy(products);
-    //   },
-    //   onJoinGroupBuy: () => {},
-    // });
+    rerenderGroupBuy = widget.renderGroupBuy({
+      cssClasses: {
+        container: "group-buy-container",
+      },
+      discountedTotalPrice: formatPrice(
+        this.cart.reduce(
+          (acc, item) =>
+            acc + Math.ceil(item.price * 0.8 * 100) * item.quantity,
+          0
+        )
+      ),
+      savingsAmount: formatPrice(
+        this.cart.reduce(
+          (acc, item) =>
+            acc + Math.floor(item.price * 0.2 * 100) * item.quantity,
+          0
+        )
+      ),
+      onStartGroupBuy: (startGroupBuy) => {
+        const products = this.cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          name: item.name,
+          imageUrl: window.location.origin + "/products/" + item.img,
+          priceInCents: item.price * 100,
+          discountedPriceInCents: Math.ceil(item.price * 100 * 0.8),
+          description: item.description,
+        }));
+        startGroupBuy(products);
+      },
+      onJoinGroupBuy: (joinGroupBuy) => {
+        const products = this.cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          name: item.name,
+          imageUrl: window.location.origin + "/products/" + item.img,
+          priceInCents: item.price * 100,
+          discountedPriceInCents: Math.ceil(item.price * 100 * 0.8),
+          description: item.description,
+        }));
+        joinGroupBuy(products);
+      },
+    });
   },
   data() {
     return {
@@ -135,11 +147,29 @@ export default {
       loading: false,
     };
   },
-  // watch: {
-  //   cart() {
-  //     rerenderGroupBuy();
-  //   },
-  // },
+  watch: {
+    cart: {
+      handler() {
+        rerenderGroupBuy(
+          formatPrice(
+            this.cart.reduce(
+              (acc, item) =>
+                acc + Math.floor(item.price * 0.2 * 100) * item.quantity,
+              0
+            )
+          ),
+          formatPrice(
+            this.cart.reduce(
+              (acc, item) =>
+                acc + Math.ceil(item.price * 0.8 * 100) * item.quantity,
+              0
+            )
+          )
+        );
+      },
+      deep: true,
+    },
+  },
   methods: {
     pay() {
       // confirms the payment and will automatically display a
