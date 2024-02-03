@@ -40,12 +40,62 @@ export const widget = (() => {
     window.history.replaceState({}, "", url.href);
   };
 
+  const showAnimatedNotification = (
+    message,
+    type = "info",
+    duration = 5000
+  ) => {
+    const notification = document.createElement("div");
+    notification.innerText = message;
+
+    const backgroundColor = type === "error" ? "#d9534f" : "#333333"; // red for error, dark for others
+
+    notification.style = `
+      display: block;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: ${backgroundColor};
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+      max-width: 80%;
+      box-sizing: border-box;
+      text-align: center;
+    `;
+    document.body.appendChild(notification);
+
+    // Start the animation
+    setTimeout(() => {
+      notification.style.opacity = 1;
+      notification.style.transform = "translateY(0)";
+    }, 100);
+
+    // Fade out and remove the notification after some time
+    setTimeout(() => {
+      notification.style.opacity = 0;
+      notification.style.transform = "translateY(-20px)";
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300); // This should match the duration of the opacity and transform transitions
+    }, duration);
+  };
+
   const init = () => {
     const groupPurchaseId = getQueryParam("__groupPurchaseId");
     if (groupPurchaseId) {
       window.__groupPurchase = window.__groupPurchase || {};
       window.__groupPurchase.groupPurchaseId = groupPurchaseId;
       removeQueryParam("__groupPurchaseId");
+
+      // Show animated notification
+      showAnimatedNotification(
+        'You have joined a group buy! Now select the required product and click "Join group buy" during checkout.'
+      );
     }
   };
 
@@ -92,19 +142,36 @@ export const widget = (() => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
+    }).then((response) => {
+      if (response.ok) {
+        return response.json().then((data) => {
+          window.location.href = data.redirectUrl;
+        });
+      }
+
+      // Handle HTTP errors
+      return response.json().then((errorData) => {
+        // You can customize this part based on how your API sends errors
+        if (errorData.error === "target_basket_content_not_met") {
+          return showAnimatedNotification(
+            "Please make sure that you added all the required products for the group buy.",
+            "error"
+          );
         }
-        throw new Error("Network response was not ok.");
-      })
-      .then((data) => {
-        window.location.href = data.redirectUrl;
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+
+        if (errorData.error === "target_basket_value_not_met") {
+          return showAnimatedNotification(
+            "Please make sure that the total value of your basket meets the requirements for the group buy.",
+            "error"
+          );
+        }
+
+        return showAnimatedNotification(
+          "Something went wrong. Please try again later or contact support.",
+          "error"
+        );
       });
+    });
 
   const renderGroupBuy = ({
     discountedTotalPrice,

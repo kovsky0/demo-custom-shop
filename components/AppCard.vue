@@ -115,7 +115,7 @@ export default {
           quantity: item.quantity,
           name: item.name,
           imageUrl: window.location.origin + "/products/" + item.img,
-          priceInCents: item.price * 100,
+          priceInCents: Math.ceil(item.price * 100),
           discountedPriceInCents: Math.ceil(item.price * 100 * 0.8),
           description: item.description,
         }));
