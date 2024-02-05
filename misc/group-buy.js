@@ -1,5 +1,5 @@
 export const widget = (() => {
-  const API_URL = "http://localhost:3333";
+  const API_URL = process.env.NUXT_ENV_GROUPBUY_URL || "http://localhost:3333";
 
   const translations = {
     en: {
